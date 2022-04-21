@@ -1,7 +1,7 @@
 tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
-  This blueprint reference an external AWS EC2 given the resource_id.
+  This blueprint reference an external AWS EC2 given the instance_id then start it.
 
 imports:
   - https://cloudify.co/spec/cloudify/6.2.0/types.yaml
@@ -9,12 +9,13 @@ imports:
 
 inputs:
 
-  resource_id:
+  instance_id:
     type: string
+    required: true
 
   aws_region_name:
-      type: string
-      default: 'us-east-1'
+    type: string
+    required: true
 
 dsl_definitions:
 
@@ -29,7 +30,13 @@ node_templates:
     type: cloudify.nodes.aws.ec2.Instances
     properties:
       use_external_resource: true
-      resource_id: { get_input: resource_id }
+      resource_id: { get_input: instance_id }
       client_config: *client_config
       agent_config:
         install_method: none
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: aws.cloudify_aws.ec2.resources.instances.start
+        stop: {}
+        delete: {}
